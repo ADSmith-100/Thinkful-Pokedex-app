@@ -5,7 +5,8 @@ const helmet = require("helmet");
 require("dotenv").config();
 
 const app = express();
-const PORT = 8000;
+//const PORT = 8000;
+const PORT = process.env.PORT || 8000; //set up to use Heroku or local 8000
 const validTypes = [
   `Bug`,
   `Dark`,
@@ -28,7 +29,8 @@ const validTypes = [
 ];
 const POKEDEX = require("./pokedex.json");
 
-console.log(POKEDEX.pokemon[0].name);
+//process.env.NODE_ENV = "production"
+const morganSetting = process.env.NODE_ENV === "production" ? "tiny" : "dev";
 
 app.use(morgan("dev"));
 app.use(cors());
@@ -69,6 +71,16 @@ function validateBearerToken(req, res, next) {
 function handleGetTypes(req, res) {
   res.json(validTypes);
 }
+
+app.use((error, req, res, next) => {
+  let response;
+  if (process.env.NODE_ENV === "production") {
+    response = { error: { message: "server error" } };
+  } else {
+    response = { error };
+  }
+  res.status(500).json(response);
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
